@@ -4,7 +4,7 @@
     angular.module('NarrowItDownApp', [])
         .controller('NarrowItDownController', NarrowItDownController)
         .service('MenuSearchService', MenuSearchService)
-        .directive('foundItemsDirective', FoundItemsDirective)
+        .directive('foundItems', FoundItemsDirective)
         .constant('ApiBasePath', " https://davids-restaurant.herokuapp.com");
 
     function FoundItemsDirective() {
@@ -13,7 +13,9 @@
             scope: {
                 found: '<',
                 onRemove: '&'
-            }
+            },
+            controller: 'NarrowItDownController as ctrl',
+    bindToController: true
         };
         return ddo;
     }
@@ -22,18 +24,18 @@
 
     function NarrowItDownController(MenuSearchService) {
         var ctrl = this;
-        ctrl.items=[];
-        var searchTerm = "";
+        ctrl.items = [];
+        ctrl.searchTerm = "";
 
-        var promise = MenuSearchService.getMatchedMenuItems(ctrl.searchTerm);
+        ctrl.getMatchedMenuItems = function() {
+            console.log(" ctrl.searchTerm: " + ctrl.searchTerm);
+            var promise = MenuSearchService.getMatchedMenuItems(ctrl.searchTerm)
+                .then(function(response) {
 
-        promise.then(function(response) {
-                ctrl.items = MenuSearchService.found;
-                console.log(ctrl.items);
-            })
-            .catch(function(error) {
-                console.log("Something went terribly wrong.");
-            });
+                    ctrl.items = MenuSearchService.found;
+                    console.log(ctrl.items);
+                }, function(error) {})
+        }
 
         ctrl.onRemove = function(index) {
             MenuSearchService.remove(index);
@@ -57,7 +59,7 @@
                     response.data.menu_items.map(
 
                         function(element) {
-                          console.log(element);
+                            //console.log(element);
                             if (element.description.indexOf(searchTerm) != -1 &&
                                 searchTerm != "") {
                                 service.found.push(element);
@@ -68,7 +70,7 @@
                 function(error) {
                     console.log('error');
                 });
-                //console.log(response);
+            //console.log(response);
             return response;
         }
         service.remove = function(index) {
